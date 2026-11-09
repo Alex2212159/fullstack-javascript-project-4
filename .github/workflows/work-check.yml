@@ -10,4 +10,6 @@ jobs:
           node-version: 26
           cache: "npm"
       - run: make install
+      - run: make test
       - run: make lint
+      - run: make test-coverage

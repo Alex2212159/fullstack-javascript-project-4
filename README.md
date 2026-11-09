@@ -2,37 +2,27 @@
 
 [![hexlet-check](https://github.com/Alex2212159/fullstack-javascript-project-4/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/Alex2212159/fullstack-javascript-project-4/actions)
 
-На базовом уровне научитесь работать с асинхронным кодом в JavaScript, писать тесты на Mock / Stub, работать с ошибками и исключениями, DOM, promises, async / await, работать с HTTP.
+[![work-check](https://github.com/Alex2212159/fullstack-javascript-project-4/actions/workflows/work-check.yml/badge.svg)](https://github.com/Alex2212159/fullstack-javascript-project-4/actions/workflows/work-check.yml)
 
-Учебный проект Хекслета: https://ru.hexlet.io/programs/fullstack-javascript
-Как это должно работать: https://asciinema.org/a/dVKok25V5xW2SkjMF4LE8fZOw
+[![asciicast](https://asciinema.org/a/6Cc2VJgEITjoTQ55.svg)](https://asciinema.org/a/6Cc2VJgEITjoTQ55)
 
-## Стек
-
-- JavaScript
-
-## Установка
-
-<!-- Опишите установку: клонирование, зависимости, переменные окружения -->
+# Installation
 
 ```bash
-git clone https://github.com/Alex2212159/fullstack-javascript-project-4.git
-cd fullstack-javascript-project-4
+make install
 ```
 
-## Использование
+## Help information
 
-<!-- Добавьте примеры запуска и запись asciinema — именно это смотрит работодатель -->
+Получение справочной информации, которая генерируется автоматически на основе данных известных о вашей программе.
 
----
+```bash
+page-loader -h
+```
 
-<details>
-<summary>Автоматические тесты Хекслета</summary>
+## Functional option
 
-Тесты запускаются на каждый коммит. За запуск отвечает файл `.github/workflows/hexlet-check.yml` — не удаляйте и не переименовывайте ни его, ни репозиторий.
-
-</details>
-
-## О Хекслете
-
-[Хекслет](https://ru.hexlet.io/) — школа программирования: авторские программы обучения с практикой, поддержкой наставников и реальными проектами, которые остаются в резюме. Этот репозиторий — один из таких проектов.
+```bash
+page-loader --output /var/tmp https://ru.hexlet.io/courses
+```
+Без указания опции --output/-o, утилита сохраняет страницы в директорию  запуска программы (по умолчанию).

@@ -13,14 +13,25 @@
   "license": "ISC",
   "author": "",
   "type": "module",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "oxfmt && oxlint --fix"
   },
+  "bin": {
+    "page-loader": "bin/page-loader.js"
+  },
   "devDependencies": {
+    "@vitest/coverage-v8": "^5.1.0",
+    "nock": "^15.0.6",
     "oxfmt": "^0.75.0",
-    "oxlint": "^1.90.0"
+    "oxlint": "^1.90.0",
+    "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "axios": "^1.21.0",
+    "commander": "^15.1.0"
   }
 }
