@@ -6,6 +6,8 @@
 
 [![asciicast](https://asciinema.org/a/6Cc2VJgEITjoTQ55.svg)](https://asciinema.org/a/6Cc2VJgEITjoTQ55)
 
+[![asciicast](https://asciinema.org/a/l3noKA4EJSzdiySS.svg)](https://asciinema.org/a/l3noKA4EJSzdiySS)
+
 # Installation
 
 ```bash
