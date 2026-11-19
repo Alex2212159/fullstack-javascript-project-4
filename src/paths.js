@@ -1,12 +1,13 @@
 import path from "node:path";
 
-const getName = (fullUrl, ext = "img") => {
+const getName = (fullUrl, ext = "extension") => {
   const myURL = new URL(fullUrl);
 
   const pathName = myURL.pathname;
-  const extension = path.extname(pathName);
 
-  const baseName = extension ? pathName.slice(0, -extension.length) : myURL.pathname;
+  const value = path.extname(pathName);
+
+  const baseName = value ? pathName.slice(0, -value.length) : myURL.pathname;
 
   const partsURL = myURL.hostname + baseName;
 
@@ -17,9 +18,12 @@ const getName = (fullUrl, ext = "img") => {
   const type = {
     html: ".html",
     files: "_files",
-    img: extension,
+    extension: value,
   };
-  return result + type[ext];
+
+  const resultExt = type[ext] ? type[ext] : type.html;
+
+  return result + resultExt;
 };
 
 export default getName;

@@ -8,6 +8,8 @@
 
 [![asciicast](https://asciinema.org/a/l3noKA4EJSzdiySS.svg)](https://asciinema.org/a/l3noKA4EJSzdiySS)
 
+[![asciicast](https://asciinema.org/a/ajYRrqWR07MNekgB.svg)](https://asciinema.org/a/ajYRrqWR07MNekgB)
+
 # Installation
 
 ```bash

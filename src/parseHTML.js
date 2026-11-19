@@ -4,45 +4,81 @@ import axios from "axios";
 import path from "node:path";
 import getName from "./paths.js";
 
-const parseHTML = (content, pathToDir, nameDir, baseUrl) => {
-  const links = [];
-  const $ = cheerio.load(content);
-  const pageHost = new URL(baseUrl).hostname;
-  $("img").each((_i, element) => {
+const getSource = ($, tag, source, pageUrl) => {
+  const result = [];
+  $(tag).each((_i, element) => {
     const $item = $(element);
-    const srcValue = $item.attr("src");
-    if (!srcValue) {
+    const sourceValue = $item.attr(source);
+    if (!sourceValue) {
       return;
     }
-    const itemHost = new URL(srcValue, baseUrl).hostname;
+    const itemHost = new URL(sourceValue, pageUrl).hostname;
+    const pageHost = new URL(pageUrl).hostname;
     if (itemHost === pageHost || itemHost.endsWith("." + pageHost)) {
-      links.push(srcValue);
+      result.push(sourceValue);
     }
   });
-  return getResponseImg(links, pathToDir, nameDir, baseUrl).then((responses) => {
-    responses.forEach(({ htmlSrc, pathtoFile }) => {
-      $(`img[src="${htmlSrc}"]`).attr("src", pathtoFile);
-    });
-    return $.html();
-  });
+  return result;
 };
 
-const getResponseImg = (arrayLink, pathToDir, nameDir, url) => {
+const getResponse = (arrayLink, pathToDir, nameDir, url, typeRes = "text") => {
   const request = (link) => {
     const fullLink = new URL(link, url);
-    const fullPathImg = path.join(pathToDir, getName(fullLink));
-    const pathImgHtml = path.join(nameDir, getName(fullLink));
+    const fullPath = path.join(pathToDir, getName(fullLink));
+    const pathToFileHtml = path.join(nameDir, getName(fullLink));
 
     return axios
-      .get(fullLink, { responseType: "arraybuffer" })
-      .then((response) => fsp.writeFile(fullPathImg, response.data))
-      .then(() => ({ htmlSrc: link, pathtoFile: pathImgHtml }))
+      .get(fullLink, { responseType: typeRes })
+      .then((response) => fsp.writeFile(fullPath, response.data))
+      .then(() => ({ addressUrl: link, pathtoFile: pathToFileHtml }))
       .catch(() => {
         return null;
       });
   };
   const promises = arrayLink.map(request);
   return Promise.all(promises).then((resp) => resp.filter((elem) => elem !== null));
+};
+
+const parseHTML = (content, pathToDir, nameDir, baseUrl) => {
+  const $ = cheerio.load(content);
+  const linksImg = getSource($, "img", "src", baseUrl);
+  const linksLink = getSource($, "link", "href", baseUrl);
+  const linksScript = getSource($, "script", "src", baseUrl);
+
+  return getResponse(linksImg, pathToDir, nameDir, baseUrl, "arraybuffer")
+    .then((responses) => {
+      responses.forEach(({ addressUrl, pathtoFile }) => {
+        $("img[src]").each((_, el) => {
+          const $el = $(el);
+          if ($el.attr("src") === addressUrl) {
+            $el.attr("src", pathtoFile);
+          }
+        });
+      });
+    })
+    .then(() => getResponse(linksLink, pathToDir, nameDir, baseUrl, "arraybuffer"))
+    .then((responses) => {
+      responses.forEach(({ addressUrl, pathtoFile }) => {
+        $("link[href]").each((_, el) => {
+          const $el = $(el);
+          if ($el.attr("href") === addressUrl) {
+            $el.attr("href", pathtoFile);
+          }
+        });
+      });
+    })
+    .then(() => getResponse(linksScript, pathToDir, nameDir, baseUrl, "arraybuffer"))
+    .then((responses) => {
+      responses.forEach(({ addressUrl, pathtoFile }) => {
+        $("script[src]").each((_, el) => {
+          const $el = $(el);
+          if ($el.attr("src") === addressUrl) {
+            $el.attr("src", pathtoFile);
+          }
+        });
+      });
+      return $.html();
+    });
 };
 
 export default parseHTML;

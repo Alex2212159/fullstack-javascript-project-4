@@ -16,6 +16,8 @@ const nameFile = "ru-hexlet-io-courses.html";
 const nameDirRes = "ru-hexlet-io-courses_files";
 const fakeImg = Buffer.from([0xff, 0x11]);
 const nameFileImg = "ru-hexlet-io-assets-professions-nodejs.png";
+const nameFileCss = "ru-hexlet-io-assets-application.css";
+const nameFileJs = "ru-hexlet-io-packs-js-runtime.js";
 
 let content;
 let contentAbs;
@@ -111,6 +113,40 @@ test("getHTML with img not have src", async () => {
   expect(listContentOfDir.sort()).toEqual([nameFile, nameDirRes].sort());
   expect(listContentFiles.sort()).toEqual([]);
   expect(cheerio.load(contentFile).html()).toBe(cheerio.load(contentNotSrc).html());
+  expect(nock.isDone()).toBe(true);
+});
+
+test("getHTML with different contents", async () => {
+  const contentDiffCont = await fs.readFile(getFixturePath("unparse-page-contents.html"), "utf-8");
+  nock("https://ru.hexlet.io").get("/courses").reply(200, contentDiffCont);
+  nock("https://ru.hexlet.io").get("/courses").reply(200, contentDiffCont);
+  nock("https://ru.hexlet.io").get("/assets/professions/nodejs.png").reply(200, fakeImg);
+  nock("https://ru.hexlet.io").get("/assets/application.css").reply(200, "OK");
+  nock("https://ru.hexlet.io").get("/packs/js/runtime.js").reply(200, "OK");
+
+  const pathToFileResult = await downloadPage("https://ru.hexlet.io/courses", nameDir);
+  const contentFile = await fs.readFile(pathToFileResult, "utf-8");
+  const listContentOfDir = await fs.readdir(nameDir);
+  const listContentOfDirRes = await fs.readdir(path.join(nameDir, nameDirRes));
+  const contentPNG = await fs.readFile(path.join(nameDir, nameDirRes, nameFileImg));
+  const contentCss = await fs.readFile(path.join(nameDir, nameDirRes, nameFileCss), "utf-8");
+  const contentJs = await fs.readFile(path.join(nameDir, nameDirRes, nameFileJs), "utf-8");
+  const contentHtml = await fs.readFile(path.join(nameDir, nameDirRes, nameFile), "utf-8");
+  const contentResult = await fs.readFile(getFixturePath("expect-page-after-parse.html"), "utf-8");
+
+  expect(pathToFileResult).toBe(path.join(nameDir, nameFile));
+
+  expect(listContentOfDir.sort()).toEqual([nameFile, nameDirRes].sort());
+  expect(listContentOfDirRes.sort()).toEqual(
+    [nameFile, nameFileImg, nameFileCss, nameFileJs].sort(),
+  );
+
+  expect(fakeImg).toEqual(contentPNG);
+  expect(cheerio.load(contentHtml).html()).toBe(cheerio.load(contentDiffCont).html());
+  expect(contentCss).toBe("OK");
+  expect(contentJs).toBe("OK");
+
+  expect(cheerio.load(contentFile).html()).toBe(cheerio.load(contentResult).html());
   expect(nock.isDone()).toBe(true);
 });
 
