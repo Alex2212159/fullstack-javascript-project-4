@@ -3,7 +3,6 @@
 import { Command } from "commander";
 import process from "node:process";
 import downloadPage from "../src/index.js";
-
 const program = new Command();
 
 program
