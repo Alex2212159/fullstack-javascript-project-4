@@ -46,11 +46,15 @@ const getResponse = (arrayLink, pathToDir, nameDir, url) => {
       })
       .catch((error) => {
         logParse("error in process: %s", error.message);
-        return null;
+        return { error: { linkName: link, message: error.message } };
       });
   };
   const promises = arrayLink.map(request);
-  return Promise.all(promises).then((resp) => resp.filter((elem) => elem !== null));
+  return Promise.all(promises).then((resp) => {
+    const responses = resp.filter((elem) => !elem.error);
+    const errorsResponse = resp.filter((elem) => elem.error);
+    return { responses, errorsResponse };
+  });
 };
 
 const parseHTML = (content, pathToDir, nameDir, baseUrl) => {
@@ -62,9 +66,10 @@ const parseHTML = (content, pathToDir, nameDir, baseUrl) => {
   logParse("get value src images: %s", linksImg.length);
   logParse("get value href links: %s", linksLink.length);
   logParse("get value src scripts: %s", linksScript.length);
+  const resultErrors = [];
 
   return getResponse(linksImg, pathToDir, nameDir, baseUrl)
-    .then((responses) => {
+    .then(({ responses, errorsResponse }) => {
       responses.forEach(({ addressUrl, pathtoFile }) => {
         $("img[src]").each((_, el) => {
           const $el = $(el);
@@ -74,9 +79,10 @@ const parseHTML = (content, pathToDir, nameDir, baseUrl) => {
           }
         });
       });
+      resultErrors.push(...errorsResponse);
     })
     .then(() => getResponse(linksLink, pathToDir, nameDir, baseUrl))
-    .then((responses) => {
+    .then(({ responses, errorsResponse }) => {
       responses.forEach(({ addressUrl, pathtoFile }) => {
         $("link[href]").each((_, el) => {
           const $el = $(el);
@@ -86,9 +92,10 @@ const parseHTML = (content, pathToDir, nameDir, baseUrl) => {
           }
         });
       });
+      resultErrors.push(...errorsResponse);
     })
     .then(() => getResponse(linksScript, pathToDir, nameDir, baseUrl))
-    .then((responses) => {
+    .then(({ responses, errorsResponse }) => {
       responses.forEach(({ addressUrl, pathtoFile }) => {
         $("script[src]").each((_, el) => {
           const $el = $(el);
@@ -98,7 +105,8 @@ const parseHTML = (content, pathToDir, nameDir, baseUrl) => {
           }
         });
       });
-      return $.html();
+      resultErrors.push(...errorsResponse);
+      return { html: $.html(), errors: resultErrors };
     });
 };
 

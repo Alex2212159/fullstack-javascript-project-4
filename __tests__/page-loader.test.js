@@ -35,13 +35,15 @@ test("getHtml", async () => {
   nock("https://ru.hexlet.io").get("/courses").reply(200, content);
   nock("https://ru.hexlet.io").get("/assets/professions/nodejs.png").reply(200, fakeImg);
 
-  const pathToFileResult = await downloadPage("https://ru.hexlet.io/courses", nameDir);
-  const contentFile = await fs.readFile(pathToFileResult, "utf-8");
+  //{ path: pathToNewFile, errors: newHtml.errors }
+  const resultDownloadPage = await downloadPage("https://ru.hexlet.io/courses", nameDir);
+  const contentFile = await fs.readFile(resultDownloadPage.path, "utf-8");
   const listContentOfDir = await fs.readdir(nameDir);
   const contentPNG = await fs.readFile(path.join(nameDir, nameDirRes, nameFileImg));
   const contentResult = await fs.readFile(getFixturePath("expectHTML"), "utf-8");
 
-  expect(pathToFileResult).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.path).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.errors).toEqual([]);
   expect(listContentOfDir.sort()).toEqual([nameFile, nameDirRes].sort());
   expect(fakeImg).toEqual(contentPNG);
   expect(cheerio.load(contentFile).html()).toBe(cheerio.load(contentResult).html());
@@ -52,13 +54,15 @@ test("getHTML with absolute url", async () => {
   nock("https://ru.hexlet.io").get("/courses").reply(200, contentAbs);
   nock("https://ru.hexlet.io").get("/assets/professions/nodejs.png").reply(200, fakeImg);
 
-  const pathToFileResult = await downloadPage("https://ru.hexlet.io/courses", nameDir);
-  const contentFile = await fs.readFile(pathToFileResult, "utf-8");
+  //{ path: pathToNewFile, errors: newHtml.errors }
+  const resultDownloadPage = await downloadPage("https://ru.hexlet.io/courses", nameDir);
+  const contentFile = await fs.readFile(resultDownloadPage.path, "utf-8");
   const listContentOfDir = await fs.readdir(nameDir);
   const contentPNG = await fs.readFile(path.join(nameDir, nameDirRes, nameFileImg));
   const contentResult = await fs.readFile(getFixturePath("expectHTML"), "utf-8");
 
-  expect(pathToFileResult).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.path).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.errors).toEqual([]);
   expect(listContentOfDir.sort()).toEqual([nameFile, nameDirRes].sort());
   expect(fakeImg).toEqual(contentPNG);
   expect(cheerio.load(contentFile).html()).toBe(cheerio.load(contentResult).html());
@@ -66,18 +70,21 @@ test("getHTML with absolute url", async () => {
 });
 
 test("getHTML with subdomain", async () => {
+  //{ path: pathToNewFile, errors: newHtml.errors }
+
   const nameImg = "test-ru-hexlet-io-assets-professions-nodejs.png";
   const contentWithSubdomain = await fs.readFile(getFixturePath("unparsHTMLSubdomain"), "utf-8");
   nock("https://ru.hexlet.io").get("/courses").reply(200, contentWithSubdomain);
   nock("https://test.ru.hexlet.io").get("/assets/professions/nodejs.png").reply(200, fakeImg);
 
-  const pathToFileResult = await downloadPage("https://ru.hexlet.io/courses", nameDir);
-  const contentFile = await fs.readFile(pathToFileResult, "utf-8");
+  const resultDownloadPage = await downloadPage("https://ru.hexlet.io/courses", nameDir);
+  const contentFile = await fs.readFile(resultDownloadPage.path, "utf-8");
   const listContentOfDir = await fs.readdir(nameDir);
   const contentPNG = await fs.readFile(path.join(nameDir, nameDirRes, nameImg));
   const contentResult = await fs.readFile(getFixturePath("expectHTMLSubdomain"), "utf-8");
 
-  expect(pathToFileResult).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.path).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.errors).toEqual([]);
   expect(listContentOfDir.sort()).toEqual([nameFile, nameDirRes].sort());
   expect(fakeImg).toEqual(contentPNG);
   expect(cheerio.load(contentFile).html()).toBe(cheerio.load(contentResult).html());
@@ -85,15 +92,18 @@ test("getHTML with subdomain", async () => {
 });
 
 test("getHTML with foreign hostname", async () => {
+  //{ path: pathToNewFile, errors: newHtml.errors }
+
   const contentForeignHostname = await fs.readFile(getFixturePath("unparsHTMLforeign"), "utf-8");
   nock("https://ru.hexlet.io").get("/courses").reply(200, contentForeignHostname);
 
-  const pathToFileResult = await downloadPage("https://ru.hexlet.io/courses", nameDir);
-  const contentFile = await fs.readFile(pathToFileResult, "utf-8");
+  const resultDownloadPage = await downloadPage("https://ru.hexlet.io/courses", nameDir);
+  const contentFile = await fs.readFile(resultDownloadPage.path, "utf-8");
   const listContentOfDir = await fs.readdir(nameDir);
   const listContentFiles = await fs.readdir(path.join(nameDir, nameDirRes));
 
-  expect(pathToFileResult).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.path).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.errors).toEqual([]);
   expect(listContentOfDir.sort()).toEqual([nameFile, nameDirRes].sort());
   expect(listContentFiles.sort()).toEqual([]);
   expect(cheerio.load(contentFile).html()).toBe(cheerio.load(contentForeignHostname).html());
@@ -101,15 +111,18 @@ test("getHTML with foreign hostname", async () => {
 });
 
 test("getHTML with img not have src", async () => {
+  //{ path: pathToNewFile, errors: newHtml.errors }
+
   const contentNotSrc = await fs.readFile(getFixturePath("unparsHTMLNull"), "utf-8");
   nock("https://ru.hexlet.io").get("/courses").reply(200, contentNotSrc);
 
-  const pathToFileResult = await downloadPage("https://ru.hexlet.io/courses", nameDir);
-  const contentFile = await fs.readFile(pathToFileResult, "utf-8");
+  const resultDownloadPage = await downloadPage("https://ru.hexlet.io/courses", nameDir);
+  const contentFile = await fs.readFile(resultDownloadPage.path, "utf-8");
   const listContentOfDir = await fs.readdir(nameDir);
   const listContentFiles = await fs.readdir(path.join(nameDir, nameDirRes));
 
-  expect(pathToFileResult).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.path).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.errors).toEqual([]);
   expect(listContentOfDir.sort()).toEqual([nameFile, nameDirRes].sort());
   expect(listContentFiles.sort()).toEqual([]);
   expect(cheerio.load(contentFile).html()).toBe(cheerio.load(contentNotSrc).html());
@@ -117,6 +130,8 @@ test("getHTML with img not have src", async () => {
 });
 
 test("getHTML with different contents", async () => {
+  //{ path: pathToNewFile, errors: newHtml.errors }
+
   const contentDiffCont = await fs.readFile(getFixturePath("unparse-page-contents.html"), "utf-8");
   nock("https://ru.hexlet.io").get("/courses").reply(200, contentDiffCont);
   nock("https://ru.hexlet.io").get("/courses").reply(200, contentDiffCont);
@@ -124,8 +139,8 @@ test("getHTML with different contents", async () => {
   nock("https://ru.hexlet.io").get("/assets/application.css").reply(200, "OK");
   nock("https://ru.hexlet.io").get("/packs/js/runtime.js").reply(200, "OK");
 
-  const pathToFileResult = await downloadPage("https://ru.hexlet.io/courses", nameDir);
-  const contentFile = await fs.readFile(pathToFileResult, "utf-8");
+  const resultDownloadPage = await downloadPage("https://ru.hexlet.io/courses", nameDir);
+  const contentFile = await fs.readFile(resultDownloadPage.path, "utf-8");
   const listContentOfDir = await fs.readdir(nameDir);
   const listContentOfDirRes = await fs.readdir(path.join(nameDir, nameDirRes));
   const contentPNG = await fs.readFile(path.join(nameDir, nameDirRes, nameFileImg));
@@ -134,7 +149,8 @@ test("getHTML with different contents", async () => {
   const contentHtml = await fs.readFile(path.join(nameDir, nameDirRes, nameFile), "utf-8");
   const contentResult = await fs.readFile(getFixturePath("expect-page-after-parse.html"), "utf-8");
 
-  expect(pathToFileResult).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.path).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.errors).toEqual([]);
 
   expect(listContentOfDir.sort()).toEqual([nameFile, nameDirRes].sort());
   expect(listContentOfDirRes.sort()).toEqual(
@@ -150,7 +166,77 @@ test("getHTML with different contents", async () => {
   expect(nock.isDone()).toBe(true);
 });
 
+test("getHTML with error in response", async () => {
+  nock("https://ru.hexlet.io").get("/courses").reply(404);
+
+  await expect(downloadPage("https://ru.hexlet.io/courses", nameDir)).rejects.toThrow();
+  const listContentOfDir = await fs.readdir(nameDir);
+  expect(listContentOfDir.sort()).toEqual([nameDirRes]);
+  const listContentOfDirRes = await fs.readdir(path.join(nameDir, nameDirRes));
+  expect(listContentOfDirRes.sort()).toEqual([]);
+  expect(nock.isDone()).toBe(true);
+});
+
+test("getHTML with error in request", async () => {
+  nock("https://ru.hexlet.io")
+    .get("/courses")
+    .replyWithError(Object.assign(new Error("Connection refused"), { code: "ECONNREFUSED" }));
+
+  await expect(downloadPage("https://ru.hexlet.io/courses", nameDir)).rejects.toMatchObject({
+    code: "ECONNREFUSED",
+  });
+  const listContentOfDir = await fs.readdir(nameDir);
+  expect(listContentOfDir.sort()).toEqual([nameDirRes]);
+  const listContentOfDirRes = await fs.readdir(path.join(nameDir, nameDirRes));
+  expect(listContentOfDirRes.sort()).toEqual([]);
+  expect(nock.isDone()).toBe(true);
+});
+
+test("getHTML with error in permission", async () => {
+  await fs.chmod(nameDir, 0o100);
+  await expect(downloadPage("https://ru.hexlet.io/courses", nameDir)).rejects.toMatchObject({
+    code: "EACCES",
+  });
+});
+
+test("getHTML with error in response download resourse", async () => {
+  //{ path: pathToNewFile, errors: newHtml.errors }
+  const contentDiffCont = await fs.readFile(getFixturePath("unparse-page-contents.html"), "utf-8");
+  nock("https://ru.hexlet.io").get("/courses").reply(200, contentDiffCont);
+  nock("https://ru.hexlet.io").get("/courses").reply(200, contentDiffCont);
+  nock("https://ru.hexlet.io").get("/assets/professions/nodejs.png").reply(200, fakeImg);
+  nock("https://ru.hexlet.io").get("/assets/application.css").reply(404);
+  nock("https://ru.hexlet.io").get("/packs/js/runtime.js").reply(200, "OK");
+
+  const resultDownloadPage = await downloadPage("https://ru.hexlet.io/courses", nameDir);
+  const contentFile = await fs.readFile(resultDownloadPage.path, "utf-8");
+  const listContentOfDir = await fs.readdir(nameDir);
+  const listContentOfDirRes = await fs.readdir(path.join(nameDir, nameDirRes));
+  const contentPNG = await fs.readFile(path.join(nameDir, nameDirRes, nameFileImg));
+  const contentJs = await fs.readFile(path.join(nameDir, nameDirRes, nameFileJs), "utf-8");
+  const contentHtml = await fs.readFile(path.join(nameDir, nameDirRes, nameFile), "utf-8");
+
+  const contentResult = await fs.readFile(
+    getFixturePath("expect-page-after-parse-err.html"),
+    "utf-8",
+  );
+
+  expect(resultDownloadPage.path).toBe(path.join(nameDir, nameFile));
+  expect(resultDownloadPage.errors[0].error.message).toMatch(/404/);
+  expect(resultDownloadPage.errors[0].error.linkName).toBe("/assets/application.css");
+  expect(listContentOfDir.sort()).toEqual([nameFile, nameDirRes].sort());
+  expect(listContentOfDirRes.sort()).toEqual([nameFile, nameFileImg, nameFileJs].sort());
+
+  expect(fakeImg).toEqual(contentPNG);
+  expect(cheerio.load(contentHtml).html()).toBe(cheerio.load(contentDiffCont).html());
+  expect(contentJs).toBe("OK");
+
+  expect(cheerio.load(contentFile).html()).toBe(cheerio.load(contentResult).html());
+  expect(nock.isDone()).toBe(true);
+});
+
 afterEach(async () => {
+  await fs.chmod(nameDir, 0o755);
   await fs.rm(nameDir, { recursive: true, force: true });
   nock.cleanAll();
 });

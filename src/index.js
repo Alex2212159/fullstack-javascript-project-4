@@ -37,11 +37,13 @@ const downloadPage = (paramUrl, paramDir = process.cwd()) => {
     })
     .then((newHtml) => {
       logIndex("get new html for writing");
-      return fsp.writeFile(pathToNewFile, newHtml, "utf-8");
+      return fsp
+        .writeFile(pathToNewFile, newHtml.html, "utf-8")
+        .then(() => ({ path: pathToNewFile, errors: newHtml.errors }));
     })
-    .then(() => {
-      logIndex("new html writed in dirr: %s", nameDirContent);
-      return pathToNewFile;
+    .then((result) => {
+      logIndex("new html writed in dir: %s", pathToNewFile);
+      return result;
     })
     .catch((error) => {
       logIndex("get error: %s", error.message);

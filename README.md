@@ -12,6 +12,8 @@
 
 [![asciicast](https://asciinema.org/a/oDfnH7DFFhGvAU4W.svg)](https://asciinema.org/a/oDfnH7DFFhGvAU4W)
 
+[![asciicast](https://asciinema.org/a/EfYemiRQgJMLyrlw.svg)](https://asciinema.org/a/EfYemiRQgJMLyrlw)
+
 # Installation
 
 ```bash
