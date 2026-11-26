@@ -13,7 +13,7 @@ program
   .action((arg, options) => {
     const result = downloadPage(arg, options.output)
       .then((data) => {
-        console.log(data.path);
+        console.log(`Page was succesfully downloaded into '${data.path}'`);
 
         if (data.errors.length !== 0) {
           const message = data.errors;

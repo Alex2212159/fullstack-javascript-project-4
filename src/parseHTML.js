@@ -7,6 +7,7 @@ const axios = require("axios");
 import path from "node:path";
 import getName from "./paths.js";
 import debug from "debug";
+import Listr from "listr";
 
 const logParse = debug("page-loader:parseHTML");
 
@@ -27,7 +28,7 @@ const getSource = ($, tag, source, pageUrl) => {
   return result;
 };
 
-const getResponse = (arrayLink, pathToDir, nameDir, url) => {
+/* const getResponse = (arrayLink, pathToDir, nameDir, url) => {
   const request = (link) => {
     const fullLink = new URL(link, url);
     const fullPath = path.join(pathToDir, getName(fullLink));
@@ -56,58 +57,79 @@ const getResponse = (arrayLink, pathToDir, nameDir, url) => {
     return { responses, errorsResponse };
   });
 };
+*/
+
+const getResponse = (arrayLink, pathToDir, nameDir, url) => {
+  const responses = [];
+  const errorsResponse = [];
+
+  const uniqArrayLink = [...new Set(arrayLink)];
+
+  const tasks = uniqArrayLink.map((link) => {
+    const fullLink = new URL(link, url);
+    const fullPath = path.join(pathToDir, getName(fullLink));
+    const pathToFileHtml = path.join(nameDir, getName(fullLink));
+
+    return {
+      title: fullLink.href,
+      task: () => {
+        logParse("request sent: %s", fullLink);
+        return axios
+          .get(fullLink.href, { responseType: "arraybuffer" })
+          .then((response) => {
+            logParse("response status: %s", response.status);
+            return fsp.writeFile(fullPath, response.data);
+          })
+          .then(() => {
+            logParse("response written in dir: %s", nameDir);
+            responses.push({ addressUrl: link, pathtoFile: pathToFileHtml });
+          })
+          .catch((error) => {
+            logParse("error in process: %s", error.message);
+            errorsResponse.push({ error: { linkName: link, message: error.message } });
+            throw error;
+          });
+      },
+    };
+  });
+
+  const listr = new Listr(tasks, { concurrent: true, exitOnError: false });
+  return listr
+    .run()
+    .catch(() => {})
+    .then(() => ({ responses, errorsResponse }));
+};
 
 const parseHTML = (content, pathToDir, nameDir, baseUrl) => {
   const $ = cheerio.load(content);
-  const linksImg = getSource($, "img", "src", baseUrl);
-  const linksLink = getSource($, "link", "href", baseUrl);
-  const linksScript = getSource($, "script", "src", baseUrl);
+  const contentsTag = [
+    { tag: "img", attr: "src" },
+    { tag: "link", attr: "href" },
+    { tag: "script", attr: "src" },
+  ];
 
-  logParse("get value src images: %s", linksImg.length);
-  logParse("get value href links: %s", linksLink.length);
-  logParse("get value src scripts: %s", linksScript.length);
+  const allLinks = contentsTag.flatMap(({ tag, attr }) => getSource($, tag, attr, baseUrl));
+  logParse("get resources founded: %s", allLinks.length);
+
   const resultErrors = [];
 
-  return getResponse(linksImg, pathToDir, nameDir, baseUrl)
-    .then(({ responses, errorsResponse }) => {
+  return getResponse(allLinks, pathToDir, nameDir, baseUrl).then(
+    ({ responses, errorsResponse }) => {
       responses.forEach(({ addressUrl, pathtoFile }) => {
-        $("img[src]").each((_, el) => {
-          const $el = $(el);
-          if ($el.attr("src") === addressUrl) {
-            logParse("full images url changed on: %s", pathtoFile);
-            $el.attr("src", pathtoFile);
-          }
-        });
-      });
-      resultErrors.push(...errorsResponse);
-    })
-    .then(() => getResponse(linksLink, pathToDir, nameDir, baseUrl))
-    .then(({ responses, errorsResponse }) => {
-      responses.forEach(({ addressUrl, pathtoFile }) => {
-        $("link[href]").each((_, el) => {
-          const $el = $(el);
-          if ($el.attr("href") === addressUrl) {
-            logParse("full links url changed on: %s", pathtoFile);
-            $el.attr("href", pathtoFile);
-          }
-        });
-      });
-      resultErrors.push(...errorsResponse);
-    })
-    .then(() => getResponse(linksScript, pathToDir, nameDir, baseUrl))
-    .then(({ responses, errorsResponse }) => {
-      responses.forEach(({ addressUrl, pathtoFile }) => {
-        $("script[src]").each((_, el) => {
-          const $el = $(el);
-          if ($el.attr("src") === addressUrl) {
-            logParse("full script url changed on: %s", pathtoFile);
-            $el.attr("src", pathtoFile);
-          }
+        contentsTag.forEach(({ tag, attr }) => {
+          $(`${tag}[${attr}]`).each((_, el) => {
+            const $el = $(el);
+            if ($el.attr(attr) === addressUrl) {
+              logParse("url changed on: %s", pathtoFile);
+              $el.attr(attr, pathtoFile);
+            }
+          });
         });
       });
       resultErrors.push(...errorsResponse);
       return { html: $.html(), errors: resultErrors };
-    });
+    },
+  );
 };
 
 export default parseHTML;
